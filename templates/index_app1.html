@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dominant Color Analyzer</title>
+  <meta name="description" content="Dominant Color Analyzer lets you quickly detect the main color from any image. Perfect for designers, photographers, and creatives.">
+  <meta name="keywords" content="dominant color analyzer, color extractor, image color tool, color detection, color palette generator, color analysis">
+  <meta name="author" content="Your Name or Brand">
+  <meta name="robots" content="index, follow">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://yourdomain.com/dominant-color-analyzer">
+  <meta property="og:title" content="Dominant Color Analyzer | Find the Main Color in Any Image">
+  <meta property="og:description" content="Quickly analyze and extract the dominant color from any photo or design. Get accurate color data for your creative projects.">
+
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://yourdomain.com/dominant-color-analyzer">
+  <meta property="twitter:title" content="Dominant Color Analyzer | Find the Main Color in Any Image">
+  <meta property="twitter:description" content="Instantly find the dominant color in any image with our analyzer tool — simple, fast, and accurate.">
+
+
+  <style>
+    :root{
+      --bg:#0f1226; --card:#171a32; --ink:#e9ecf3; --muted:#aab1c6;
+      --accent:#7c5cff; --accent-2:#00d4ff; --danger:#ff5171; --ok:#1ecb7b;
+      --border:rgba(255,255,255,.08);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; background: linear-gradient(135deg, #0b0e20, #151942);
+      font-family: Inter, Segoe UI, Roboto, sans-serif; color:var(--ink);
+    }
+    header{
+      padding:20px 24px; display:flex; gap:16px; align-items:center; justify-content:space-between;
+      background: linear-gradient(90deg, rgba(124,92,255,.15), rgba(0,212,255,.15));
+      border-bottom:1px solid var(--border); position:sticky; top:0; z-index:10;
+    }
+    .description {
+      display: flex;
+      justify-content: center;
+      padding: 24px 16px;
+      background: rgba(189,173,255,0.05);
+    }
+
+    .desc-container {
+      max-width: 1070px;
+      width: 100%;
+      padding: 16px 20px;
+      border-radius: 10px;
+      background-color: transparent;
+      border: 1px solid rgba(124,92,255,0.25);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      text-align: center;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .desc-container:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+    }
+
+    .desc-container h2 {
+      font-size: 1.3rem;
+      margin-bottom: 0.6rem;
+      color: #4a3fbf;
+    }
+
+    .desc-container p {
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: #808080;
+    }
+
+    .brand{font-weight:800; letter-spacing:.3px; font-size:18px}
+    .container{max-width:1100px; margin:24px auto; padding:0 16px; display:grid; gap:16px}
+    .grid{display:grid; grid-template-columns: 1.2fr .8fr; gap:16px}
+    .card{
+      background:radial-gradient(1200px 400px at 10% -20%, rgba(124,92,255,.12), transparent 40%),
+                 radial-gradient(900px 400px at 110% 10%, rgba(0,212,255,.12), transparent 40%),
+                 var(--card);
+      border:1px solid var(--border); border-radius:14px; padding:16px; box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    .toolbar{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px}
+    .btn{
+      background:#1d2142; color:var(--ink); border:1px solid var(--border);
+      padding:10px 12px; border-radius:10px; cursor:pointer; font-weight:600;
+      display:inline-flex; gap:8px; align-items:center; transition:.15s ease;
+    }
+    .btn:hover{transform:translateY(-1px); border-color:rgba(255,255,255,.16)}
+    .btn.primary{background:linear-gradient(90deg, var(--accent), var(--accent-2)); border:none}
+    .btn.ghost{background:transparent}
+    .btn.danger{background: #2a1a24; border-color:#3c2230; color:#ff9db0}
+    .uploader{
+      display:flex; gap:12px; align-items:center; background:#101331; padding:10px 12px; border-radius:12px; border:1px dashed rgba(255,255,255,.2)
+    }
+    input[type=file]{display:none}
+    .pill{border:1px solid var(--border); padding:6px 10px; border-radius:999px; color:var(--muted); font-size:12px}
+    .canvas-wrap{position:relative; background:#0b0e20; border-radius:12px; overflow:hidden; border:1px solid var(--border)}
+    canvas{display:block; width:100%; height:auto; image-rendering:auto; background:#0b0e20;}
+    .hint{color:var(--muted); font-size:12px}
+    .panel h3{margin:8px 0 10px 0; font-size:14px; color:#cfd5ea}
+    .swatches{display:grid; grid-template-columns:repeat(5,1fr); gap:8px}
+    .swatch{border-radius:10px; border:1px solid var(--border); padding:10px; display:flex; flex-direction:column; gap:8px; min-height:84px; justify-content:space-between}
+    .swatch .chip{height:36px; border-radius:8px; border:1px solid rgba(0,0,0,.25)}
+    .row{display:flex; gap:8px; align-items:center; justify-content:space-between}
+    .kv{font-size:12px; color:var(--muted)}
+    .copy{cursor:pointer; padding:4px 8px; border-radius:6px; border:1px solid var(--border); background:#14183a; color:#e9ecf3}
+    .meta{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px; color:var(--muted); font-size:12px}
+    .legend{display:flex; gap:12px; flex-wrap:wrap; font-size:12px; color:var(--muted)}
+    .legend .box{width:12px; height:12px; border-radius:3px; border:1px solid rgba(255,255,255,.25)}
+    .badge{padding:4px 8px; border-radius:999px; font-size:12px; border:1px solid var(--border); color:var(--muted)}
+    .error{color:#ff9db0}
+    @media (max-width: 960px){
+      .grid{grid-template-columns: 1fr}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">Dominant Color Analyzer</div>
+    <div class="legend">
+      <span class="badge">Click and drag to select the area to be analyzed • Hold the angle of selected area to resize • Drag inside the area to move</span>
+    </div>
+  </header>
+
+  <section class="description">
+    <div class="desc-container">
+      <h1>About This Tool</h1>
+      <p>
+        Upload your photo and instantly calculate the most dominant colors and color palette within any selected area of your photo. <br>
+        This is perfect tool for designers, photographers, and researchers who need quick and accurate color analysis.
+      </p>
+    </div>
+  </section>
+
+
+  <div class="container">
+    <div class="grid">
+      <section class="card">
+        <div class="toolbar">
+          <label class="uploader">
+            <input id="file" type="file" accept="image/*" />
+            <span class="btn">Upload Image</span>
+            <span class="pill" id="fileName">No file</span>
+          </label>
+        
+          <button id="btnAnalyze" class="btn primary" disabled>Analyze</button>
+          <button id="btnReset" class="btn ghost" disabled>Reset</button>
+          <button id="btnZoomIn" class="btn ghost" style="display:none;" disabled>Zoom +</button>
+          <button id="btnZoomOut" class="btn ghost" style="display:none;" disabled>Zoom −</button>
+          <button id="btnCenter" class="btn ghost" style="display:none;" disabled>Center</button>
+        </div>
+
+        <div class="canvas-wrap">
+          <canvas id="canvas"></canvas>
+        </div>
+        <div class="meta">
+          <div id="imgInfo">Image: —</div>
+          <div id="selInfo">Selected area: —</div>
+        </div>
+        <div class="hint" style="margin-top:8px">Tip: make a selection of at least 2×2 pixels for stable results.</div>
+        <div class="error" id="error" style="margin-top:8px"></div>
+      </section>
+
+      <aside class="card panel">
+        <h3>Dominant Color Result</h3>
+        <div class="swatches" id="domOutput">
+          <!-- Dominant color card injected here -->
+        </div>
+        <h3 style="margin-top:16px">Palette</h3>
+        <div class="swatches" id="paletteOutput"></div>
+      </aside>
+    </div>
+  </div>
+
+  <div id="hoverColor" style="
+    position:fixed;
+    pointer-events:none;
+    padding:6px 10px;
+    font-size:12px;
+    color:#fff;
+    display:none;
+    z-index:1000;
+    border-radius:6px;
+    font-weight:600;
+    white-space:nowrap;
+    box-shadow:0 4px 12px rgba(0,0,0,.4);">
+  </div>
+
+
+
+  <div id="hoverColor" style="
+    position:fixed;
+    pointer-events:none;
+    padding:6px 10px;
+    font-size:12px;
+    color:#fff;
+    display:none;
+    z-index:1000;
+    border-radius:6px;
+    font-weight:600;
+    white-space:nowrap;
+    box-shadow:0 4px 12px rgba(0,0,0,.4);">
+  </div>
+
+
+  <script>
+    // State
+    const state = {
+      imageId: null,
+      img: new Image(),
+      imageURL: null,
+      natural: {w:0, h:0},
+      canvas: null,
+      ctx: null,
+      zoom: 1.0,
+      // selection in canvas pixels (display space)
+      sel: {x:0, y:0, w:0, h:0, active:false},
+      dragging:false,
+      resizing:false,
+      handle:null, // 'nw','ne','se','sw'
+      last:{x:0,y:0},
+      scale: 1, // displayed_width / natural_width
+      pan:{x:0,y:0} // kept 0 here, but wired for future panning
+    };
+
+    const HANDLE_SIZE = 10;
+
+    const $ = (id)=>document.getElementById(id);
+    const fileInput = $("file");
+    const fileName = $("fileName");
+    const canvas = $("canvas");
+    const ctx = canvas.getContext("2d");
+    state.canvas = canvas; state.ctx = ctx;
+
+    const btnAnalyze = $("btnAnalyze");
+    const btnReset = $("btnReset");
+    const btnZoomIn = $("btnZoomIn");
+    const btnZoomOut = $("btnZoomOut");
+    const btnCenter = $("btnCenter");
+    const imgInfo = $("imgInfo");
+    const selInfo = $("selInfo");
+    const errBox = $("error");
+    const domOutput = $("domOutput");
+    const paletteOutput = $("paletteOutput");
+
+    // Helpers
+    function setError(msg){
+      errBox.textContent = msg || "";
+    }
+
+    function draw(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      if(!state.imageURL) return;
+
+      const dispW = Math.round(state.natural.w * state.scale * state.zoom);
+      const dispH = Math.round(state.natural.h * state.scale * state.zoom);
+      canvas.width = dispW;
+      canvas.height = dispH;
+
+      ctx.imageSmoothingEnabled = true;
+      ctx.drawImage(state.img, 0, 0, dispW, dispH);
+
+      // Draw selection
+      if(state.sel.active && state.sel.w > 0 && state.sel.h > 0){
+        ctx.save();
+        // mask outside selection
+        ctx.fillStyle = "rgba(0,0,0,0)";
+        ctx.fillRect(0,0,canvas.width, canvas.height);
+
+
+        // Lubangi bagian selection agar transparan (clear)
+        ctx.globalCompositeOperation = "destination-out";
+        ctx.fillRect(state.sel.x, state.sel.y, state.sel.w, state.sel.h);
+        ctx.restore();
+
+        // selection border
+        ctx.strokeStyle = "#7c5cff";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(state.sel.x + .5, state.sel.y + .5, state.sel.w, state.sel.h);
+
+        // handles
+        const hs = HANDLE_SIZE;
+        const corners = {
+          nw: {x: state.sel.x, y: state.sel.y},
+          ne: {x: state.sel.x + state.sel.w, y: state.sel.y},
+          se: {x: state.sel.x + state.sel.w, y: state.sel.y + state.sel.h},
+          sw: {x: state.sel.x, y: state.sel.y + state.sel.h}
+        };
+        ctx.fillStyle = "#00d4ff";
+        Object.values(corners).forEach(c=>{
+          ctx.fillRect(c.x - hs/2, c.y - hs/2, hs, hs);
+        });
+
+        // crosshair
+        ctx.strokeStyle = "rgba(255,255,255,.35)";
+        ctx.setLineDash([5,4]);
+        ctx.beginPath();
+        ctx.moveTo(state.sel.x, state.sel.y + state.sel.h/2);
+        ctx.lineTo(state.sel.x + state.sel.w, state.sel.y + state.sel.h/2);
+        ctx.moveTo(state.sel.x + state.sel.w/2, state.sel.y);
+        ctx.lineTo(state.sel.x + state.sel.w/2, state.sel.y + state.sel.h);
+        ctx.stroke();
+
+        ctx.restore();
+      }
+      updateMeta();
+    }
+
+    function toOriginalPx(rect){
+      // Map canvas/display selection back to original image pixels.
+      // scale_total = scale * zoom
+      const s = state.scale * state.zoom;
+      const x = Math.floor(rect.x / s);
+      const y = Math.floor(rect.y / s);
+      const w = Math.max(1, Math.floor(rect.w / s));
+      const h = Math.max(1, Math.floor(rect.h / s));
+      return {x, y, w, h};
+    }
+
+    function updateMeta(){
+      if(!state.imageURL){
+        imgInfo.textContent = "Image: —";
+        selInfo.textContent = "Selected area: —";
+        return;
+      }
+      imgInfo.textContent = `Image: ${state.natural.w}×${state.natural.h}px | scale: ${state.scale.toFixed(3)} | zoom: ${state.zoom.toFixed(2)}`;
+
+      if(state.sel.active){
+        const o = toOriginalPx(state.sel);
+        selInfo.textContent = `Selected area: canvas ${state.sel.w}×${state.sel.h}px → original ${o.w}×${o.h}px @ (${o.x},${o.y})`;
+      } else {
+        selInfo.textContent = "Selected area: —";
+      }
+    }
+
+    function enableControls(en){
+      [btnAnalyze, btnReset, btnZoomIn, btnZoomOut, btnCenter].forEach(b => b.disabled = !en);
+    }
+
+    // Upload
+    fileInput.addEventListener("change", async (e)=>{
+      setError("");
+      const file = e.target.files?.[0];
+      if(!file) return;
+      fileName.textContent = file.name;
+
+      const fd = new FormData();
+      fd.append("image", file);
+      enableControls(false);
+      resetSelection();
+
+      try{
+        const res = await fetch("/dom-color-app/upload", { method: "POST", body: fd });
+        const data = await res.json();
+        if(!res.ok) throw new Error(data.error || "Upload failed");
+
+        state.imageId = data.image_id;
+        state.imageURL = data.image_url;
+        state.natural = {w: data.width, h: data.height};
+
+        await loadAndFitImage(state.imageURL, state.natural);
+        enableControls(true);
+
+        console.log("[IMG] natural", state.natural, "scale", state.scale, "zoom", state.zoom);
+        draw();
+      }catch(err){
+        setError(err.message);
+        console.error(err);
+      }
+    });
+
+    function resetSelection(){
+      state.sel = {x:0,y:0,w:0,h:0,active:false};
+      draw();
+    }
+
+    async function loadAndFitImage(url, natural){
+      // Load
+      await new Promise((resolve, reject)=>{
+        state.img.onload = resolve;
+        state.img.onerror = reject;
+        state.img.src = url + "?t=" + Date.now();
+      });
+
+      // Fit to container width
+      // We'll set a max canvas width for good UX; container width is responsive.
+      const wrap = state.canvas.parentElement.getBoundingClientRect();
+      const maxWidth = Math.min(wrap.width - 2, 1024); // safe padding
+      const scale = Math.min(1, maxWidth / natural.w);
+      state.scale = scale;
+      state.zoom = 1.0;
+
+      state.canvas.width = Math.round(natural.w * scale);
+      state.canvas.height = Math.round(natural.h * scale);
+      state.canvas.style.width = state.canvas.width + "px";
+      state.canvas.style.height = state.canvas.height + "px";
+    }
+
+    // Interaction
+    function pointInRect(px, py, r){
+      return px >= r.x && py >= r.y && px <= r.x + r.w && py <= r.y + r.h;
+    }
+    function whichHandle(px, py, r){
+      const hs = HANDLE_SIZE;
+      const corners = [
+        {k:"nw", x:r.x, y:r.y},
+        {k:"ne", x:r.x + r.w, y:r.y},
+        {k:"se", x:r.x + r.w, y:r.y + r.h},
+        {k:"sw", x:r.x, y:r.y + r.h},
+      ];
+      for(const c of corners){
+        if(Math.abs(px - c.x) <= hs && Math.abs(py - c.y) <= hs) return c.k;
+      }
+      return null;
+    }
+    function clampSel(){
+      // Keep selection inside canvas bounds
+      const W = canvas.width, H = canvas.height;
+      let {x,y,w,h} = state.sel;
+
+      if(w < 0){ x += w; w = -w; }
+      if(h < 0){ y += h; h = -h; }
+
+      x = Math.max(0, Math.min(x, W-1));
+      y = Math.max(0, Math.min(y, H-1));
+      w = Math.max(1, Math.min(w, W - x));
+      h = Math.max(1, Math.min(h, H - y));
+
+      state.sel = {x,y,w,h,active:true};
+    }
+
+    canvas.addEventListener("mousedown", (e)=>{
+      if(!state.imageURL) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = Math.round(e.clientX - rect.left);
+      const y = Math.round(e.clientY - rect.top);
+      state.last = {x,y};
+      setError("");
+
+      if(state.sel.active){
+        const h = whichHandle(x,y,state.sel);
+        if(h){
+          state.resizing = true;
+          state.handle = h;
+          return;
+        }
+        if(pointInRect(x,y,state.sel)){
+          state.dragging = true;
+          return;
+        }
+      }
+      // start new selection
+      state.sel = {x, y, w:1, h:1, active:true};
+      state.dragging = false;
+      state.resizing = true;
+      state.handle = "se";
+      draw();
+    });
+
+    window.addEventListener("mousemove", (e)=>{
+      if(!state.imageURL) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = Math.round(e.clientX - rect.left);
+      const y = Math.round(e.clientY - rect.top);
+
+      if(state.resizing){
+        let {x: sx, y: sy, w, h} = state.sel;
+        switch(state.handle){
+          case "se": w = x - sx; h = y - sy; break;
+          case "ne": w = x - sx; h = (state.sel.y + state.sel.h) - y; sy = y; break;
+          case "sw": w = (state.sel.x + state.sel.w) - x; h = y - sy; sx = x; break;
+          case "nw": w = (state.sel.x + state.sel.w) - x; h = (state.sel.y + state.sel.h) - y; sx = x; sy = y; break;
+        }
+        state.sel = {x:sx, y:sy, w, h, active:true};
+        clampSel();
+        draw();
+      } else if(state.dragging){
+        const dx = x - state.last.x;
+        const dy = y - state.last.y;
+        state.last = {x,y};
+        state.sel.x += dx;
+        state.sel.y += dy;
+        clampSel();
+        draw();
+      }
+    });
+
+    window.addEventListener("mouseup", ()=>{
+      state.resizing = false;
+      state.dragging = false;
+      state.handle = null;
+    });
+
+    // Buttons
+    btnReset.addEventListener("click", ()=>{
+      resetSelection();
+      domOutput.innerHTML = "";
+      paletteOutput.innerHTML = "";
+    });
+    btnAnalyze.addEventListener("click", async ()=>{
+      if(!state.sel.active){ setError("Make a selection area first!"); return; }
+      const o = toOriginalPx(state.sel);
+      console.log("[ANALYZE] display->original", state.sel, "=>", o);
+
+      try{
+        const res = await fetch("/dom-color-app/analyze", {
+          method:"POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({ image_id: state.imageId, rect: o })
+        });
+        const data = await res.json();
+        if(!res.ok) throw new Error(data.error || "Analyze failed");
+
+        renderResults(data);
+        // Visual feedback: colorize border with dominant color
+        draw();
+        ctx.save();
+        ctx.strokeStyle = data.dominant.hex;
+        ctx.lineWidth = 3;
+        ctx.strokeRect(state.sel.x + .5, state.sel.y + .5, state.sel.w, state.sel.h);
+        ctx.restore();
+
+        // sanity log
+        console.log("[RESULT] clamped", data.rect_clamped, "image_size", data.image_size);
+      }catch(err){
+        setError(err.message);
+        console.error(err);
+      }
+    });
+    btnZoomIn.addEventListener("click", ()=>{ zoomTo(state.zoom * 1.25); });
+    btnZoomOut.addEventListener("click", ()=>{ zoomTo(state.zoom / 1.25); });
+    btnCenter.addEventListener("click", ()=>{ centerView(); });
+
+    function zoomTo(z){
+      z = Math.max(0.25, Math.min(z, 8));
+      state.zoom = z;
+      draw();
+    }
+    function centerView(){
+      // No panning implemented; we just redraw. Hook here if you add pan.
+      draw();
+    }
+
+    // UI state toggles
+    function afterImageLoaded(){
+      btnAnalyze.disabled = false;
+      btnReset.disabled = false;
+      btnZoomIn.disabled = false;
+      btnZoomOut.disabled = false;
+      btnCenter.disabled = false;
+    }
+
+    function renderResults(data){
+      const dom = data.dominant;
+      domOutput.innerHTML = `
+        <div class="swatch" title="Dominant Color">
+          <div class="chip" style="background:${dom.hex}"></div>
+          <div class="row">
+            <span class="kv">${dom.name}</span>
+            <button class="copy" data-copy="${dom.hex}">Copy</button>
+          </div>
+          <div class="kv">HEX ${dom.hex.toUpperCase()}</div>
+          <div class="kv">RGB ${dom.rgb[0]}, ${dom.rgb[1]}, ${dom.rgb[2]}</div>
+        </div>
+      `;
+
+      paletteOutput.innerHTML = (data.palette || []).map(p => `
+        <div class="swatch" title="Palette">
+          <div class="chip" style="background:${p.hex}"></div>
+          <div class="row">
+            <span class="kv">${p.name}</span>
+            <button class="copy" data-copy="${p.hex}">Copy</button>
+          </div>
+          <div class="kv">HEX ${p.hex.toUpperCase()}</div>
+          <div class="kv">RGB ${p.rgb[0]}, ${p.rgb[1]}, ${p.rgb[2]}</div>
+        </div>
+      `).join("");
+
+      document.querySelectorAll(".copy").forEach(btn=>{
+        btn.addEventListener("click", async ()=>{
+          try{
+            await navigator.clipboard.writeText(btn.dataset.copy);
+            btn.textContent = "Copied!";
+            setTimeout(()=> btn.textContent = "Copy", 1200);
+          }catch{}
+        });
+      });
+    }
+
+
+    // Init
+    window.addEventListener("resize", ()=>{
+      if(!state.imageURL) return;
+      // Refit to container width, preserve center & selection in original px
+      const o = state.sel.active ? toOriginalPx(state.sel) : null;
+      loadAndFitImage(state.imageURL, state.natural).then(()=>{
+        if(o){
+          // Map back to display coords with new scale
+          const s = state.scale * state.zoom;
+          state.sel = {
+            x: Math.round(o.x * s),
+            y: Math.round(o.y * s),
+            w: Math.round(o.w * s),
+            h: Math.round(o.h * s),
+            active: true
+          };
+        }
+        draw();
+      });
+    });
+
+    // Small quality-of-life
+    document.addEventListener("keydown", (e)=>{
+      if(e.key === "a" && !btnAnalyze.disabled) btnAnalyze.click();
+      if(e.key === "Escape") btnReset.click();
+      if(e.key === "+") btnZoomIn.click();
+      if(e.key === "-") btnZoomOut.click();
+    });
+    
+    const hoverBox = $("hoverColor");
+    let hoverTimer = null;
+
+    canvas.addEventListener("mousemove", async (e)=>{
+      if(!state.imageURL) return;
+      const rect = canvas.getBoundingClientRect();
+      const cx = Math.round(e.clientX - rect.left);
+      const cy = Math.round(e.clientY - rect.top);
+
+      // Posisi pixel asli
+      const o = toOriginalPx({x:cx, y:cy, w:1, h:1});
+
+      if(hoverTimer) return;
+      hoverTimer = setTimeout(async ()=>{
+        try{
+          const res = await fetch("/dom-color-app/color_at", {
+            method:"POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({ image_id: state.imageId, x:o.x, y:o.y })
+          });
+          const data = await res.json();
+          if(res.ok){
+            hoverBox.style.display = "block";
+            hoverBox.style.left = (e.clientX + 15) + "px";
+            hoverBox.style.top = (e.clientY + 15) + "px";
+
+            // Background = warna yang diambil
+            hoverBox.style.background = data.hex;
+
+            // Tentukan warna teks agar tetap terbaca (putih/ hitam tergantung kontras)
+            const [r,g,b] = data.rgb;
+            const brightness = (r*0.299 + g*0.587 + b*0.114);
+            hoverBox.style.color = brightness > 160 ? "#000" : "#fff";
+
+            // Format teks memanjang
+            hoverBox.textContent = `${data.name}, ${data.hex.toUpperCase()}, rgb: (${r}, ${g}, ${b})`;
+          }else{
+            hoverBox.style.display = "none";
+          }
+        }catch{
+          hoverBox.style.display = "none";
+        }
+        hoverTimer = null;
+      }, 100); // update tiap 100ms
+    });
+
+    canvas.addEventListener("mouseleave", ()=>{
+      hoverBox.style.display = "none";
+      if(hoverTimer){
+        clearTimeout(hoverTimer);
+        hoverTimer = null;
+      }
+    });
+
+
+
+
+  </script>
+</body>
+</html>

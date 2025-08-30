@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main Menu - Combined Application</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: linear-gradient(135deg, #0a1f44, #102a54, #0d1b3d);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        h1 {
+            margin-top: 40px;
+            font-size: 2.2rem;
+            text-align: center;
+        }
+
+        p {
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .menu-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            max-width: 800px;
+        }
+
+        .menu-card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 20px;
+            width: 250px;
+            text-align: center;
+            text-decoration: none;
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: transform 0.2s ease, background 0.3s ease;
+        }
+
+        .menu-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .menu-card h2 {
+            margin-bottom: 10px;
+            font-size: 1.4rem;
+        }
+
+        .menu-card p {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        @media (max-width: 600px) {
+            .menu-card {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to Josant-Tools</h1>
+    <p>Select the application you want to use:</p>
+
+    <div class="menu-container">
+        <a href="/dom-color-app" class="menu-card">
+            <h2>🎨 Dominant Color Analyzer</h2>
+            <p>With the Dominant Color Analyzer, you don’t need to manually guess the main color of an image. Just upload an image and pick area you want, and boom—it instantly tells you the dominant color and palette, along with its code (hex and RGB), ready to use.</p>
+        </a>
+        <a href="/angle-finder-app" class="menu-card">
+            <h2>📐 Instant Photo Angle Finder</h2>
+            <p>Measure angles of the object from image precisely. You won’t be measuring with a protractor; all you need to do is upload an image and decide which angle you want to calculate (by selecting its points), and boom—you get the exact angle measurement you want.</p>
+        </a>
+        <a href="/outfit-harmony-app" class="menu-card">
+            <h2>🌟👕 Outfit Color Harmony 👗🌟</h2>
+            <p>Discover the perfect color combinations for your style, turning any outfit into a balanced and eye-catching look. Simply choose your main color, and let the app suggest harmonious tones that make your fashion stand out effortlessly.</p>
+        </a>
+    </div>
+</body>
+</html>

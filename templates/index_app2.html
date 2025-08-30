@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Instant Photo Angle Finder</title>
+<!-- SEO Meta Tags -->
+<meta name="description" content="Instant Photo Angle Finder – Upload a photo or try the demo to instantly measure object angles directly from your browser. Fast, accurate, and easy to use.">
+<meta name="keywords" content="photo angle finder, measure angles online, image angle calculator, object angle measurement, instant angle finder, measure angles from photo, web app for measuring angles">
+<meta name="author" content="Your Name or Brand" />
+<meta name="robots" content="index, follow" />
+
+<!-- Open Graph / Facebook -->
+<meta property="og:title" content="Instant Photo Angle Finder – Measure Object Angles Online" />
+<meta property="og:description" content="Upload a photo or try the demo to instantly measure object angles directly from your browser. Fast, accurate, and easy to use." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://yourwebsite.com" />
+
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Instant Photo Angle Finder – Measure Object Angles Online" />
+<meta name="twitter:description" content="Upload a photo or try the demo to instantly measure object angles directly from your browser." />
+
+
+<style>
+  body {
+    margin: 0;
+    font-family: Inter, Segoe UI, Roboto, sans-serif; color:var(--ink);
+    background: linear-gradient(135deg, #0b0e20, #151942);
+    color: #ecf0f1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 2rem;
+    box-sizing: border-box;
+  }
+  h2 {
+    font-size: 1.8rem;
+    text-align: center;
+    color: #ecf0f1;
+    margin-bottom: 0.5rem;
+  }
+  p {
+    text-align: center;
+    max-width: 600px;
+    color: #bdc3c7; /* Warna teks lebih terang */
+  }
+  input[type="file"] { display: none; }
+  .btn {
+    background-color: rgba(255, 255, 255, 0.1); /* Latar belakang semi-transparan */
+    color: #ecf0f1;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out, background-color 0.2s ease-in-out;
+    font-size: 1rem;
+    margin: 0.25rem;
+  }
+  .btn:hover {
+    transform: scale(1.05);
+    background-color: rgba(255, 255, 255, 0.2); /* Latar belakang semi-transparan lebih terang saat hover */
+  }
+  .btn-reset { background-color: rgba(142, 68, 173, 0.3); }
+  .btn-reset:hover { background-color: rgba(142, 68, 173, 0.5); }
+  .btn-reset:hover i {animation: fa-spin 1s infinite;}
+  .btn-zoom-in { background-color: rgba(52, 152, 219, 0.3); }
+  .btn-zoom-in:hover { background-color: rgba(52, 152, 219, 0.5); }
+  .btn-zoom-out { background-color: rgba(52, 152, 219, 0.3); }
+  .btn-zoom-out:hover { background-color: rgba(52, 152, 219, 0.5); }
+  .btn-reload { background-color: rgba(231, 76, 60, 0.3); }
+  .btn-reload:hover { background-color: rgba(231, 76, 60, 0.5); }
+  .btn-upload { background-color: rgba(46, 204, 113, 0.3); }
+  .btn-upload:hover { background-color: rgba(46, 204, 113, 0.5); }
+  .btn-demo { background-color: rgba(52, 73, 94, 0.3); transition: all 0.25s ease;}
+  .btn-demo:hover { background-color: rgba(52, 73, 94, 0.5); transform: scale(1.05); box-shadow: 0 4px 10px rgba(0,0,0,0.25);}
+  .btn-delete { background-color: rgba(192, 57, 43, 0.3); }
+  .btn-delete:hover { background-color: rgba(192, 57, 43, 0.5); }
+  .btn-pdf { background-color: rgba(155, 89, 182, 0.3); }
+  .btn-pdf:hover { background-color: rgba(155, 89, 182, 0.5); }
+  .btn-line { background-color: rgba(46, 204, 113, 1); }
+  .btn-line:hover { background-color: rgba(39, 174, 96, 1); }
+  .btn-line:hover i {animation: fa-beat 1s infinite;}
+  .btn-grid { background-color: rgba(155, 89, 182, 0.3); }
+  .btn-grid:hover { background-color: rgba(155, 89, 182, 0.5); }
+
+  /* Tooltip custom */
+  .btn .tooltip {
+    visibility: hidden;
+    position: absolute;
+    z-index: 1;
+    bottom: 135%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 5px 6px;
+    background-color:rgba(0,0,0,0.75);
+    color: #fff;
+    border-radius: 12px 12px 12px 0px;
+    opacity: 0;
+    transition: opacity 0.8s;
+
+    font-size: 12px;       /* tulisan lebih kecil */
+    width:120px;
+    max-width: 280px;      /* lebarkan tooltip agar teks menyebar horizontal */
+    text-align: center;    /* biar rapi */
+    white-space: normal;
+    backdrop-filter: blur(4px);
+  }
+  .btn .tooltip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 20%;
+    margin-left: -3px;
+    border-width: 8px;
+    border-style: solid;
+    border-color: #333 transparent transparent transparent;
+  }
+
+  .btn:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  .button-group {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  
+  #canvas-container {
+    border: 2px dashed #777;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.7rem;
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    box-sizing: border-box;
+    display: flex;          
+    justify-content: center; 
+    align-items: center;
+  }
+  #canvas-wrapper {
+    position: relative;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    overflow: hidden;
+    max-width: 90vw;
+    max-height: 70vh;
+  }
+  img { display: block; }
+  canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    cursor: crosshair;
+  }
+  .measure-title {
+    background: rgba(52,152,219,0.25);  /* light-blue transparan */
+    padding: 7px 20px;
+    border-radius: 4px;
+  }
+
+  #angle-box {
+    display:none;
+    background:rgba(255,255,255,0.09);
+    border:1px solid rgba(255,255,255,0.15);
+    border-radius:10px;
+    padding:12px 16px;
+    margin-bottom: 20px;
+    width:300px;
+    backdrop-filter:blur(6px);
+
+    text-align:left;
+    color:#ecf0f1;
+    font-family:'Poppins', sans-serif; /* ← font modern */
+    font-size:14px;
+    font-weight:600;                   /* ← bold */
+    line-height:1.4;
+
+    box-shadow:
+      0 2px 4px rgba(0,0,0,0.2),
+      0 6px 12px rgba(0,0,0,0.25),
+      inset 0 1px 0 rgba(255,255,255,0.15);
+  }
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<!-- Schema.org JSON-LD for SEO -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Instant Photo Angle Finder",
+  "url": "https://yourwebsite.com",
+  "description": "Upload a photo or try the demo to instantly measure object angles directly from your browser. Fast, accurate, and easy to use.",
+  "applicationCategory": "PhotographyApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "en",
+  "image": "https://yourwebsite.com/images/preview.jpg",
+  "author": {
+    "@type": "Person",
+    "name": "Your Name"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Your Brand",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://yourwebsite.com/images/logo.png"
+    }
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  }
+}
+</script>
+</head>
+<body>
+  <h2>Instant Photo Angle Finder</h2>
+  <p>Upload a photo or try the demo to instantly measure object angles directly from your browser.</p>
+
+
+  <div class="button-group">
+    <label for="upload" class="btn btn-upload">
+      📂 Upload Image
+      <span class="tooltip">Upload a photo from your device</span>
+    </label>
+    <button class="btn btn-demo" onclick="tryDemo()">
+      🎯 Demo
+      <span class="tooltip">Use a sample image and try the feature</span>
+    </button>
+  </div>
+
+  
+  <div id="canvas-container">
+    <div id="canvas-wrapper">
+      <img id="image" />
+      <canvas id="canvas"></canvas>
+    </div>
+  </div>
+
+
+  <div class="button-group" id="action-buttons" style="display: none;">
+    <button class="btn btn-reset" onclick="resetCanvas()">
+      <i class="fas fa-trash"></i>
+      <span class="tooltip">Remove all measurements from image</span>
+    </button>
+    <button class="btn btn-delete" onclick="deleteLastMeasurement()">
+      <i class="fas fa-undo"></i>
+      <span class="tooltip">Undo</span>
+    </button>
+    <button class="btn btn-pdf" onclick="exportToPDF()">
+      <i class="fas fa-file-pdf"></i>
+      <span class="tooltip">Save measurement results as a PDF file</span>
+    </button>
+    <button class="btn btn-zoom-in" onclick="zoomIn()">
+      <i class="fas fa-search-plus"></i>
+      <span class="tooltip">Zoom In</span>
+    </button>
+    <button class="btn btn-zoom-out" onclick="zoomOut()">
+      <i class="fas fa-search-minus"></i>
+      <span class="tooltip">Zoom Out</span>
+    </button>
+    <button class="btn btn-reload" onclick="reloadPage()">
+      <i class="fas fa-sync-alt"></i>
+      <span class="tooltip">Reload the page and discard all changes</span>
+    </button>
+    <button class="btn btn-line" onclick="activateLineMode()">
+      <i class="fas fa-slash"></i>
+      <span class="tooltip">Draw a line</span>
+    </button>
+    <button class="btn btn-grid" onclick="toggleGrid()">
+      <i class="fas fa-table"></i>
+      <span class="tooltip">Grid mode</span>
+    </button>
+  </div>
+  <div id="angle-box" style="display:none !important;">
+    <p>
+      <strong class="measure-title">Angle Measurement Output:</strong><br>
+      <span id="angle-result">0°</span>
+    </p>
+  </div>
+
+
+  <div id="tips-box" style="display:block; text-align:left; width:760px; height: 185px; margin-top: 20px;  margin-bottom:20px; border:1px solid; border-radius:14px; padding: 16px 20px; color: #bdc3c7;">
+      <strong font: 12>Tips for Using This Tool:</strong><br>
+      <ol>
+        <li>Place 3 Points (A, B, and C) – Point B represents the vertex of the angle you want to measure.</li><br>
+
+        <li>Use the “Draw a Line” Button – Add extra lines to measure additional angles formed between the object and your custom line.</li><br>
+
+        <li>Enable “Grid Mode” – For more precise placement of points and lines. You can also use “Zoom In” and “Zoom Out” to align the grid accurately with your object.</li><br>
+      </ol>
+    </div>
+
+
+  
+
+  <input type="file" id="upload" accept="image/*" />
+</body>
+</html>
+
+
+<script>
+/* =======================
+   Elemen & State
+======================= */
+const upload = document.getElementById('upload');
+const img = document.getElementById('image');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const result = document.getElementById('angle-result');
+const resultBox = document.getElementById('angle-box');
+const progressBar = document.getElementById('progress-bar');
+const progress = document.getElementById('progress');
+const actionButtons = document.getElementById('action-buttons');
+
+const pointRadius = 6;
+const pointLabels = ['A', 'B', 'C'];
+
+let originalWidth = 0;
+let originalHeight = 0;
+let scale = 1;
+const scaleStep = 0.2;
+const minScale = 0.5;
+const maxScale = 3;
+
+// Multi-measurement
+// - measurements: array of { points: [{x,y},{x,y},{x,y}], angleDeg: number }
+// - currentPoints: array max 3 untuk pengukuran yang sedang dibangun
+let measurements = [];
+let currentPoints = [];
+let draggingIndex = null; // index pada currentPoints saat drag
+
+/* =======================
+   Upload & Demo
+======================= */
+upload.onchange = async function () {
+  const file = upload.files[0];
+  if (!file) return;
+  //showProgress();//
+  const formData = new FormData();
+  formData.append('image', file);
+  // Endpoint backend untuk simpan file (opsional, bisa langsung pakai URL.createObjectURL jika tanpa backend)
+  const res = await fetch('/angle-finder-app/upload', { method: 'POST', body: formData });
+  const data = await res.json();
+  img.src = '/static/uploads/' + data.filename;
+  resetState();
+};
+
+function tryDemo() {
+  //showProgress();//
+  img.src = 'static/demo/demo.jpg';
+  resetState();
+}
+
+img.onload = () => {
+  originalWidth = img.naturalWidth;
+  originalHeight = img.naturalHeight;
+  scale = fitToScreenScale();
+  resizeCanvas();
+  //hideProgress();//
+  actionButtons.style.display = 'flex';
+};
+
+/* =======================
+   Layout & Zoom
+======================= */
+function fitToScreenScale() {
+  const maxW = window.innerWidth * 0.9;
+  const maxH = window.innerHeight * 0.7;
+  return Math.min(maxW / originalWidth, maxH / originalHeight);
+}
+
+function resizeCanvas() {
+  img.width = originalWidth * scale;
+  img.height = originalHeight * scale;
+  canvas.width = img.width;
+  canvas.height = img.height;
+  draw();
+}
+
+function zoomIn() {
+  if (scale < maxScale) {
+    scale += scaleStep;
+    resizeCanvas();
+    document.getElementById('canvas-wrapper').style.overflow = 'auto';
+  }
+}
+
+function zoomOut() {
+  if (scale > minScale) {
+    scale -= scaleStep;
+    resizeCanvas();
+    if (scale <= fitToScreenScale()) {
+      document.getElementById('canvas-wrapper').style.overflow = 'hidden';
+    }
+  }
+}
+
+let showGrid = false;     // status grid
+
+function toggleGrid(){
+  showGrid = !showGrid;   // on/off
+  draw();                 // redraw canvas
+}
+
+
+/* =======================
+   Util koordinat & gambar
+======================= */
+function getMousePos(e) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: (e.clientX - rect.left) / scale,
+    y: (e.clientY - rect.top) / scale,
+  };
+}
+
+function distance(p1, p2) {
+  return Math.hypot(p1.x - p2.x, p1.y - p2.y);
+}
+
+function toScaled(p) {
+  return { x: p.x * scale, y: p.y * scale };
+}
+
+function clamp(val, min, max) {
+  return Math.max(min, Math.min(max, val));
+}
+
+function drawLine(p1, p2, color = 'blue', width = 2) {
+  const s1 = toScaled(p1), s2 = toScaled(p2);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = width;
+  ctx.beginPath();
+  ctx.moveTo(s1.x, s1.y);
+  ctx.lineTo(s2.x, s2.y);
+  ctx.stroke();
+}
+
+function drawPoint(p, color = 'red') {
+  const s = toScaled(p);
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(s.x, s.y, pointRadius, 0, 2 * Math.PI);
+  ctx.fill();
+}
+
+function drawLabel(text, p, color = '#000', offset = {x: 8, y: -8}, fontSize = 16, bgAlpha = 0.35) {
+  // Label titik A/B/C
+  const s = toScaled(p);
+  ctx.font = `bold ${fontSize}px sans-serif`;
+  ctx.textBaseline = 'top';
+
+  const metrics = ctx.measureText(text);
+  const padding = 2;
+  const bgW = metrics.width + padding * 2;
+  const bgH = fontSize + padding;
+
+  ctx.fillStyle = `rgba(255,255,255,${bgAlpha})`; // putih tipis agar tidak "menutup" garis
+  ctx.fillRect(s.x + offset.x - padding, s.y + offset.y - padding/2, bgW, bgH);
+
+  ctx.strokeStyle = 'white';
+  ctx.lineWidth = 1.2;
+  ctx.strokeText(text, s.x + offset.x, s.y + offset.y);
+
+  ctx.fillStyle = color;
+  ctx.fillText(text, s.x + offset.x, s.y + offset.y);
+}
+
+/* =======================
+   Sudut & penempatan teks
+======================= */
+function calculateAngleDeg(pA, pB, pC) {
+  const BA = { x: pA.x - pB.x, y: pA.y - pB.y };
+  const BC = { x: pC.x - pB.x, y: pC.y - pB.y };
+  const dot = BA.x * BC.x + BA.y * BC.y;
+  const magBA = Math.hypot(BA.x, BA.y);
+  const magBC = Math.hypot(BC.x, BC.y);
+  if (magBA === 0 || magBC === 0) return 0;
+  let cosTheta = dot / (magBA * magBC);
+  cosTheta = Math.max(-1, Math.min(1, cosTheta));
+  const rad = Math.acos(cosTheta);
+  const deg = rad * 180 / Math.PI;
+  return Math.round(deg * 10) / 10;
+}
+
+function angleBisectorDir(pA, pB, pC) {
+  // vektor dari B ke A dan B ke C
+  const vBA = { x: pA.x - pB.x, y: pA.y - pB.y };
+  const vBC = { x: pC.x - pB.x, y: pC.y - pB.y };
+  const magBA = Math.hypot(vBA.x, vBA.y);
+  const magBC = Math.hypot(vBC.x, vBC.y);
+  if (magBA === 0 || magBC === 0) return null;
+
+  const nBA = { x: vBA.x / magBA, y: vBA.y / magBA };
+  const nBC = { x: vBC.x / magBC, y: vBC.y / magBC };
+
+  let bis = { x: nBA.x + nBC.x, y: nBA.y + nBC.y };
+  const m = Math.hypot(bis.x, bis.y);
+  if (m === 0) {
+    // Sudut 180° (garis lurus) — pakai vektor normal terhadap BA
+    const perp = { x: -nBA.y, y: nBA.x };
+    return perp;
+  }
+  return { x: bis.x / m, y: bis.y / m };
+}
+
+function drawAngleTextInside(angleText, pA, pB, pC, color = '#111827') {
+  const bis = angleBisectorDir(pA, pB, pC);
+  if (!bis) return;
+
+  const lenBA = distance(pB, pA);
+  const lenBC = distance(pB, pC);
+  const minLen = Math.min(lenBA, lenBC);
+  const angleDeg = calculateAngleDeg(pA, pB, pC);
+
+  const fontSize = angleDeg < 25 ? 10 : 12;
+  ctx.font = `bold ${fontSize}px sans-serif`;
+  ctx.textBaseline = 'middle';
+
+  let offsetDist = clamp(minLen * (angleDeg < 25 ? 0.25 : 0.33), 12, 50);
+
+  // posisi awal mengikuti arah bisector
+  let pos = { x: pB.x + bis.x * offsetDist, y: pB.y + bis.y * offsetDist };
+
+  // buat 2 vektor tegak-lurus (kiri dan kanan) dari bisector
+  const perp1 = { x: -bis.y, y:  bis.x };
+  const perp2 = { x:  bis.y, y: -bis.x };
+
+
+  // ----- Smart placement (hindari sisi luar) -----
+  const vBA = { x: pA.x - pB.x, y: pA.y - pB.y };
+  const vBC = { x: pC.x - pB.x, y: pC.y - pB.y };
+  const cross = vBA.x * vBC.y - vBA.y * vBC.x; // arah sudut
+
+  const vPos = { x: pos.x - pB.x, y: pos.y - pB.y };
+  const crossPos = vBA.x * vPos.y - vBA.y * vPos.x;
+
+  if (cross * crossPos < 0) {
+    // balik arah bisector
+    pos = {
+      x: pB.x + (-bis.x) * offsetDist,
+      y: pB.y + (-bis.y) * offsetDist
+    };
+  }
+
+  // ----- dorong sedikit (tegak-lurus BA) -----
+  const len = Math.hypot(vBA.x, vBA.y);
+  const nBA = { x: vBA.x / len, y: vBA.y / len };
+  const perp = { x: -nBA.y, y: nBA.x };
+  pos.x += perp.x * 4;
+  pos.y += perp.y * 4;
+
+  // ----- gambar teks + background -----
+  const s = toScaled(pos);
+  const metrics = ctx.measureText(angleText);
+  const pad = 2;
+  const bgW = metrics.width + pad * 2;
+  const bgH = fontSize + 2;
+
+  ctx.fillStyle = 'rgba(255,255,0,0.35)';
+  ctx.fillRect(s.x - pad, s.y - bgH / 2, bgW, bgH);
+
+  ctx.strokeStyle = 'white';
+  ctx.lineWidth = 1;
+  ctx.strokeText(angleText, s.x, s.y + 0.5);
+
+  ctx.fillStyle = color;
+  ctx.fillText(angleText, s.x, s.y);
+}
+
+/*================================
+     Fungsi Tombol Line
+================================*/
+let lines = [];          // ← kumpulan semua garis yg sudah terkunci
+let activeLine = [];     // ← titik-titik garis yg sedang dibuat (max 2)
+let lineMode = false;
+let mousePos = {x:0, y:0};   // posisi mouse global
+let currentLine = [];  // maksimal 2 titik
+let editingLine = null;  // index garis yg sedang di-drag (null jika tidak sedang drag)
+
+function activateLineMode(){
+  currentLine = [];
+  lineMode = true;
+}
+
+// ===== event mouse =====
+canvas.addEventListener('mousemove', (e)=>{
+   mousePos = getMousePos(e);   // update posisi mouse
+   draw();                      // redraw canvas setiap mouse bergerak
+});
+
+
+/* =======================
+   Interaksi kanvas
+======================= */
+canvas.addEventListener('mousedown', function (e) {
+  const { x, y } = getMousePos(e);
+
+  // =========== LINE MODE ===========
+  if (lineMode) {
+    const {x, y} = getMousePos(e);
+
+    // ===== saat membuat garis baru =====
+    if (activeLine.length < 2) {
+      activeLine.push({x,y});
+      draw();
+      // jika sudah klik 2 titik -> lock & simpan
+      if(activeLine.length === 2){
+        lines.push({ p1: activeLine[0], p2: activeLine[1] });
+        activeLine = [];
+        lineMode = false;
+        history.push('line');
+      }
+      return;
+    }
+
+    return;
+  }
+
+  // ======= cek drag garis (drag p1 / p2) =======
+  for (let i = 0; i < lines.length; i++) {
+    if (distance(lines[i].p1, {x,y}) < pointRadius / scale + 3) {
+      editingLine = { index:i, point:'p1' };
+      return;
+    }
+    if (distance(lines[i].p2, {x,y}) < pointRadius / scale + 3) {
+      editingLine = { index:i, point:'p2' };
+      return;
+    }
+  }
+
+
+/* ==================Angle Mode=================*/
+  // drag titik pada currentPoints (yang belum terkunci)
+  for (let i = 0; i < currentPoints.length; i++) {
+    if (distance(currentPoints[i], { x, y }) < pointRadius / scale + 3) {
+      draggingIndex = i;
+      return;
+    }
+  }
+
+  // tambah titik baru
+  if (currentPoints.length < 3) {
+    currentPoints.push({ x, y });
+    if (currentPoints.length === 3) {
+      const [pA, pB, pC] = currentPoints;
+      const angleDeg = calculateAngleDeg(pA, pB, pC);
+      measurements.push({ points: [pA, pB, pC], angleDeg });
+      history.push('angle');
+      
+      // tampilkan semua hasil di angle-box
+      resultBox.style.display = 'block';
+      let html = '';
+      measurements.forEach((m, idx) => {
+        html += `<br>Angle ${idx+1} (∠B${idx+1}) = ${m.angleDeg}°<br>`;
+      });
+      result.innerHTML = html;
+
+      currentPoints = []; // siap untuk pengukuran selanjutnya
+    }
+    draw();
+  }
+});
+
+canvas.addEventListener('mousemove', function (e) {
+  const { x, y } = getMousePos(e);
+  if (draggingIndex !== null) {
+    const { x, y } = getMousePos(e);
+    currentPoints[draggingIndex] = { x, y };
+    draw();
+  }
+  if (editingLine){
+    const pos = getMousePos(e);
+    lines[ editingLine.index ][ editingLine.point ] = pos;
+    draw();
+  }
+  mousePos = getMousePos(e);
+
+});
+
+
+
+canvas.addEventListener('mouseup', function () {
+  draggingIndex = null;
+  editingLine = null;
+});
+
+/* =======================
+   Render semua
+======================= */
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // pengukuran terkunci
+  for (let i = 0; i < measurements.length; i++) {
+    const { points, angleDeg } = measurements[i];
+    const [pA, pB, pC] = points;
+
+    // garis A-B dan B-C
+    drawLine(pA, pB, 'blue', 2);
+    drawLine(pB, pC, 'blue', 2);
+
+    // titik
+    drawPoint(pA, 'red');
+    drawPoint(pB, 'red');
+    drawPoint(pC, 'red');
+
+    // label titik
+    const idx = i + 1;
+    drawLabel(`A${idx}`, pA, '#111');
+    drawLabel(`B${idx}`, pB, '#111');
+    drawLabel(`C${idx}`, pC, '#111');
+
+    // teks sudut di dalam sudut (bisektor)
+    drawAngleTextInside(`∠B${idx}: ${angleDeg}°`, pA, pB, pC, '#111827');
+  }
+
+  // pengukuran aktif (belum lengkap)
+  if (currentPoints.length > 0) {
+    if (currentPoints.length >= 2) drawLine(currentPoints[0], currentPoints[1], '#3b82f6', 2);
+    if (currentPoints.length === 3) drawLine(currentPoints[1], currentPoints[2], '#3b82f6', 2);
+
+    for (let i = 0; i < currentPoints.length; i++) {
+      drawPoint(currentPoints[i], '#ef4444');
+      drawLabel(pointLabels[i], currentPoints[i], '#000');
+    }
+  }
+
+  // gambar garis & titik
+   if(currentLine.length === 1 && lineMode){
+      drawLine(currentLine[0], mousePos, 'orange', 2);
+   } else if(currentLine.length === 2){
+      drawLine(currentLine[0], currentLine[1], 'orange', 2);
+      drawPoint(currentLine[0], 'orange');
+      drawPoint(currentLine[1], 'orange');
+   }
+  
+   // ====== garis² yang sudah terkunci =====
+  for (const ln of lines){
+    drawLine(ln.p1, ln.p2, 'orange', 2);
+    drawPoint(ln.p1,'orange');
+    drawPoint(ln.p2,'orange');
+  }
+
+  // ===== garis yang sedang dibuat (activeLine) =====
+  if(activeLine.length === 1 && lineMode){
+    drawLine(activeLine[0], mousePos, 'orange',2);
+  }
+  else if(activeLine.length === 2){
+    drawLine(activeLine[0], activeLine[1], 'orange',2);
+  }
+
+  // ==== draw grid overlay (jika aktif) ====
+  if(showGrid){
+    const gridSize = 25; // jarak antar garis grid (px dalam skala canvas)
+    ctx.strokeStyle = 'rgba(155, 48, 255, 0.6)';
+    ctx.lineWidth = 1;
+
+    // garis vertikal
+    for(let x = 0; x <= canvas.width; x += gridSize){
+      ctx.beginPath();
+      ctx.moveTo(x,0);
+      ctx.lineTo(x, canvas.height);
+      ctx.stroke();
+    }
+
+    // garis horisontal
+    for(let y = 0; y <= canvas.height; y += gridSize){
+      ctx.beginPath();
+      ctx.moveTo(0,y);
+      ctx.lineTo(canvas.width, y);
+      ctx.stroke();
+    }
+  }
+}
+
+/* =======================
+   Kontrol & utilitas
+======================= */
+let history = [];  // contoh isi: ['line', 'angle', 'angle', ...]
+
+if(activeLine.length === 2){
+    lines.push({ p1: activeLine[0], p2: activeLine[1] });
+    activeLine = [];
+    lineMode = false;
+    history.push('line');   // <— tambahkan ini
+}
+
+measurements.push({ points: [pA,pB,pC], angleDeg });
+history.push('angle');     // <— tambahkan ini
+currentPoints=[];
+
+function deleteLastMeasurement(){
+  // kalau tidak ada apapun di history -> tidak lakukan apa2
+  if(history.length === 0){
+    return;
+  }
+
+  const last = history.pop(); // ambil aksi terakhir
+
+  // jika aksi terakhir adalah garis -> hapus garis terakhir
+  if(last === 'line'){
+    if (activeLine.length > 0) {
+      activeLine = [];
+    } else if (lines.length > 0) {
+      lines.pop();
+    }
+  }
+
+  // jika aksi terakhir adalah sudut -> hapus pengukuran sudut terakhir
+  if(last === 'angle'){
+    if (currentPoints.length > 0) {
+      currentPoints.pop();
+    } else if (measurements.length > 0) {
+      measurements.pop();
+    }
+  }
+
+  // update angle-box
+  if(measurements.length === 0){
+     result.innerHTML = '';
+     resultBox.style.display = 'none';
+  } else {
+     let html='';
+     measurements.forEach((m,idx)=>{
+       html += `Sudut ${idx+1} = ${m.angleDeg}°<br>`;
+     });
+     result.innerHTML = html;
+     resultBox.style.display = 'block';
+  }
+
+  draw();
+}
+
+
+function resetCanvas() {
+  measurements = [];
+  currentPoints = [];
+  result.textContent = '';
+  resultBox.style.display = 'none';
+  draw();
+}
+
+function resetState() {
+  measurements = [];
+  currentPoints = [];
+  result.textContent = '';
+  resultBox.style.display = 'none';
+  scale = 1;
+}
+
+function reloadPage() { location.reload(); }
+
+/* =======================
+   Export ke PDF (dengan anotasi & bisektor)
+======================= */
+async function exportToPDF() {
+  if (!img.src) return;
+
+  // Kanvas offscreen ukuran asli
+  const off = document.createElement('canvas');
+  off.width = originalWidth;
+  off.height = originalHeight;
+  const octx = off.getContext('2d');
+
+  // Gambar foto dasar
+  octx.drawImage(img, 0, 0, originalWidth, originalHeight);
+
+  // Helper PDF drawing
+  function oDrawLine(p1, p2, color = 'blue', width = 3) {
+    octx.strokeStyle = color;
+    octx.lineWidth = width;
+    octx.beginPath();
+    octx.moveTo(p1.x, p1.y);
+    octx.lineTo(p2.x, p2.y);
+    octx.stroke();
+  }
+  function oDrawPoint(p, color = 'red', r = 8) {
+    octx.fillStyle = color;
+    octx.beginPath();
+    octx.arc(p.x, p.y, r, 0, 2 * Math.PI);
+    octx.fill();
+  }
+  function oDrawLabel(text, p, color = '#000', fontPx = 22, bgAlpha = 0.28) {
+    octx.font = `bold ${fontPx}px sans-serif`;
+    octx.textBaseline = 'top';
+    const metrics = octx.measureText(text);
+    const padding = 3;
+    const bgW = metrics.width + padding * 2;
+    const bgH = fontPx + 4;
+    octx.fillStyle = `rgba(255,255,255,${bgAlpha})`;
+    octx.fillRect(p.x + 10 - padding, p.y - 10 - padding/2, bgW, bgH);
+    octx.strokeStyle = 'white';
+    octx.lineWidth = 2;
+    octx.strokeText(text, p.x + 10, p.y - 10);
+    octx.fillStyle = color;
+    octx.fillText(text, p.x + 10, p.y - 10);
+  }
+
+  function oAngleDeg(pA, pB, pC) {
+    const BA = { x: pA.x - pB.x, y: pA.y - pB.y };
+    const BC = { x: pC.x - pB.x, y: pC.y - pB.y };
+    const dot = BA.x * BC.x + BA.y * BC.y;
+    const magBA = Math.hypot(BA.x, BA.y);
+    const magBC = Math.hypot(BC.x, BC.y);
+    if (magBA === 0 || magBC === 0) return 0;
+    let cosTheta = dot / (magBA * magBC);
+    cosTheta = Math.max(-1, Math.min(1, cosTheta));
+    return Math.round((Math.acos(cosTheta) * 180 / Math.PI) * 10) / 10;
+  }
+
+  function oBisector(pA, pB, pC) {
+    const vBA = { x: pA.x - pB.x, y: pA.y - pB.y };
+    const vBC = { x: pC.x - pB.x, y: pC.y - pB.y };
+    const mBA = Math.hypot(vBA.x, vBA.y);
+    const mBC = Math.hypot(vBC.x, vBC.y);
+    if (mBA === 0 || mBC === 0) return null;
+    const nBA = { x: vBA.x / mBA, y: vBA.y / mBA };
+    const nBC = { x: vBC.x / mBC, y: vBC.y / mBC };
+    let bis = { x: nBA.x + nBC.x, y: nBA.y + nBC.y };
+    const m = Math.hypot(bis.x, bis.y);
+    if (m === 0) return { x: -nBA.y, y: nBA.x };
+    return { x: bis.x / m, y: bis.y / m };
+  }
+
+  function oDrawAngleTextInside(angleText, pA, pB, pC) {
+    const bis = oBisector(pA, pB, pC);
+    if (!bis) return;
+
+    const lenBA = Math.hypot(pA.x - pB.x, pA.y - pB.y);
+    const lenBC = Math.hypot(pC.x - pB.x, pC.y - pB.y);
+    const minLen = Math.min(lenBA, lenBC);
+    const ang    = oAngleDeg(pA, pB, pC);
+
+    const fontPx = ang < 25 ? 18 : 22;
+    octx.font = `bold ${fontPx}px sans-serif`;
+    octx.textBaseline = 'middle';
+
+    const baseOffset = ang < 25 ? 0.25 : 0.33;
+    let offsetDist = Math.max(16, Math.min(80, minLen * baseOffset * 1.25));
+
+    // ----- posisi awal label mengikuti bisector  -----
+    let pos = {
+      x: pB.x + bis.x * offsetDist,
+      y: pB.y + bis.y * offsetDist
+    };
+
+    // ----- Smart placement: jika posisi berada di "luar sudut” => balik bisector -----
+    // Cek sisi mana yg membentuk sudut (gunakan cross product)
+    const vBA = { x: pA.x - pB.x, y: pA.y - pB.y };
+    const vBC = { x: pC.x - pB.x, y: pC.y - pB.y };
+    // cross product BA x BC > 0 => sudut berada di sisi "kiri", <0 sisi "kanan"
+    const cross = vBA.x * vBC.y - vBA.y * vBC.x;
+
+    // Vektor dari B ke posisi label awal
+    const vPos = { x: pos.x - pB.x, y: pos.y - pB.y };
+    // cross product BA x vPos untuk melihat apakah vPos berada di sisi yang sama dengan sudut
+    const crossPos = vBA.x * vPos.y - vBA.y * vPos.x;
+
+    // jika geserannya keluar dari sisi sudut => balik arah bisector
+    if (cross * crossPos < 0) {
+      pos = {
+        x: pB.x + (-bis.x) * offsetDist,
+        y: pB.y + (-bis.y) * offsetDist
+      };
+    }
+
+    // ----- dorong sedikit (tegak lurus BA) supaya tidak menempel garis -----
+    const len = Math.hypot(vBA.x, vBA.y);
+    const nBA = { x: vBA.x / len, y: vBA.y / len };
+    const perp = { x: -nBA.y, y: nBA.x };
+    pos.x += perp.x * 6;
+    pos.y += perp.y * 6;
+    // --------------------------------------------------
+
+    // ----- Gambar kotak + teks -----
+    const metrics = octx.measureText(angleText);
+    const pad = 3;
+    const bgW = metrics.width + pad * 2;
+    const bgH = fontPx + 4;
+
+    octx.fillStyle = 'rgba(255,255,0,0.30)';
+    octx.fillRect(pos.x - pad, pos.y - bgH/2, bgW, bgH);
+
+    octx.strokeStyle = 'white';
+    octx.lineWidth = 2;
+    octx.strokeText(angleText, pos.x, pos.y + 0.5);
+
+    octx.fillStyle = '#111827';
+    octx.fillText(angleText, pos.x, pos.y);
+  }
+
+
+
+  // Gambar anotasi untuk semua measurement
+  for (let i = 0; i < measurements.length; i++) {
+    const { points, angleDeg } = measurements[i];
+    const [pA, pB, pC] = points;
+    oDrawLine(pA, pB, 'blue', 3);
+    oDrawLine(pB, pC, 'blue', 3);
+    oDrawPoint(pA, 'red', 8);
+    oDrawPoint(pB, 'red', 8);
+    oDrawPoint(pC, 'red', 8);
+    const idx = i + 1;
+    oDrawLabel(`A${idx}`, pA, '#111', 22, 0.22);
+    oDrawLabel(`B${idx}`, pB, '#111', 22, 0.22);
+    oDrawLabel(`C${idx}`, pC, '#111', 22, 0.22);
+    oDrawAngleTextInside(`∠B${idx}: ${angleDeg}°`, pA, pB, pC);
+  }
+
+  // Konversi ke data URL PNG
+  const imgData = off.toDataURL('image/png');
+
+  // jsPDF
+  const { jsPDF } = window.jspdf;
+  const orientation = originalWidth >= originalHeight ? 'l' : 'p';
+  const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+
+  // Fit ke halaman
+  const pageW = pdf.internal.pageSize.getWidth();
+  const pageH = pdf.internal.pageSize.getHeight();
+  const margin = 10;
+  const topMargin = 5;
+  const maxW = pageW - margin * 2;
+  const maxH = pageH - topMargin - margin;
+  const imgRatio = originalWidth / originalHeight;
+  let renderW = maxW;
+  let renderH = renderW / imgRatio;
+  if (renderH > maxH) {
+    renderH = maxH;
+    renderW = renderH * imgRatio;
+  }
+
+  // ↓↓↓ tambahkan ini ↓↓↓
+  renderW *= 0.9;
+  renderH *= 0.9;
+
+  const x = (pageW - renderW) / 2;
+  const y = topMargin;
+
+  pdf.addImage(imgData, 'PNG', x, y, renderW, renderH);
+
+  // ---- Tambah hasil angle (angle-box) ----
+  const boxMargin = 10;
+  const boxPadding = 4;
+  pdf.setFontSize(12);
+
+  const lines = measurements.map((m, idx) => `Angle ${idx+1} (B${idx+1}) = ${m.angleDeg}°`);
+  const lineHeight = 6;
+  const boxHeight = lines.length * lineHeight + boxPadding * 2;
+  const boxWidth  = 90; // lebar kotak (kamu bisa sesuaikan)
+
+  let boxX  = (pageW - boxWidth) / 2;
+  let boxY = y + renderH + 14; // jarak di bawah gambar
+
+  // jika tidak cukup ruang di halaman -> buat halaman baru
+  if (boxY + boxHeight > pageH - margin) {
+    pdf.addPage();
+    boxY = margin;
+  }
+
+  // gambar kotak
+  pdf.setDrawColor(150,150,150);
+  pdf.setFillColor(240,240,240);
+  pdf.rect(boxX, boxY, boxWidth, boxHeight, 'FD'); // F+S (fill & stroke)
+
+  // tulis setiap baris dengan align:center
+  let ty = boxY + boxPadding + 4;
+  lines.forEach(text => {
+    pdf.text(text, boxX + boxWidth/2, ty, { align:'center' });
+    ty += lineHeight;
+  });
+
+  pdf.save('angle-results.pdf');
+}
+
+/* =======================
+   Progress bar
+======================= */
+function showProgress() {
+  progressBar.style.display = 'block';
+  progress.style.width = '0%';
+  let width = 0;
+  const interval = setInterval(() => {
+    width += 10;
+    progress.style.width = width + '%';
+    if (width >= 100) clearInterval(interval);
+  }, 100);
+}
+
+function hideProgress() {
+  progressBar.style.display = 'none';
+  progress.style.width = '0%';
+}
+</script>
+
+<!-- jsPDF untuk export PDF -->
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+</body>
+</html>
