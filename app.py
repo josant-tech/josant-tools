@@ -23,7 +23,10 @@ os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
 COLOR_DB = []
 try:
-    df = pd.read_excel("color.xlsx")
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # lokasi file main.py
+    excel_path = os.path.join(BASE_DIR, "color.xlsx")      # path absolut
+
+    df = pd.read_excel(excel_path, engine="openpyxl")
     for _, row in df.iterrows():
         r = int(float(row["Red"]) * 255)
         g = int(float(row["Green"]) * 255)
@@ -33,7 +36,7 @@ try:
             "rgb": (r, g, b),
             "hex": str(row["Hex"])
         })
-    print(f"Loaded {len(COLOR_DB)} colors from color.xlsx")
+    print(f"Loaded {len(COLOR_DB)} colors from {excel_path}")
 except Exception as e:
     print(f"Failed to load color.xlsx: {e}")
     df = pd.DataFrame()
