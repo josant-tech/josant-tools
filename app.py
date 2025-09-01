@@ -3,6 +3,7 @@ import uuid
 import os
 import math
 import pandas as pd
+import openpyxl
 import numpy as np
 from math import acos, degrees
 from flask import Flask, render_template, request, jsonify, send_from_directory
