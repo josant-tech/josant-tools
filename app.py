@@ -6,12 +6,35 @@ import pandas as pd
 import openpyxl
 import numpy as np
 from math import acos, degrees
-from flask import Flask, render_template, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory
 from PIL import Image, ImageOps
 from colorthief import ColorThief
 from color_harmony import get_harmony
+from flask_cors import CORS
 
 app = Flask(__name__)
+
+# Konfigurasi CORS untuk mengizinkan akses dari Blogger
+CORS(app, resources={
+    r"/*": {
+        "origins": [
+            "https://*.blogspot.com",  # Semua subdomain Blogger
+            "http://localhost:8000",   # Untuk development lokal
+            "http://127.0.0.1:8000"    # Untuk development lokal
+        ],
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+})
+
+# Handle preflight requests untuk semua routes
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', 'https://yourblogname.blogspot.com')  # Ganti dengan URL blog Anda
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
+
 # Semua upload (App1 & App2) dalam folder yang sama
 app.config["UPLOAD_FOLDER"] = os.path.join("static", "uploads")
 app.config["MAX_CONTENT_LENGTH"] = 20 * 1024 * 1024  # 20MB
@@ -57,8 +80,18 @@ def rgb_to_hex(rgb):
 
 @app.route("/")
 def main_index():
-    # Halaman utama untuk pilih aplikasi
-    return render_template("main_index.html")
+    # Kembalikan info API sederhana
+    return jsonify({
+        "message": "Flask Color Tools API",
+        "version": "1.0",
+        "endpoints": {
+            "dominant_color": "/dom-color-app/analyze",
+            "color_at_point": "/dom-color-app/color_at",
+            "angle_finder": "/angle-finder-app/calculate_angle",
+            "color_harmony": "/get_color_harmony",
+            "color_info": "/get_color_info"
+        }
+    })
 
 ############################################
 # ============== APP 1 =====================
@@ -69,16 +102,11 @@ ALLOWED_EXT = {"jpg", "jpeg", "png", "webp", "bmp"}
 def allowed(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXT
 
-@app.route("/dom-color-app")
-def index_app1():
-    return render_template("index_app1.html")
-
-@app.route("/dom-color-app/uploads/<path:fname>")
-def serve_upload_app1(fname):
-    return send_from_directory(app.config["UPLOAD_FOLDER"], fname)
-
-@app.route("/dom-color-app/upload", methods=["POST"])
+@app.route("/dom-color-app/upload", methods=["POST", "OPTIONS"])
 def upload_app1():
+    if request.method == "OPTIONS":
+        return jsonify({}), 200
+        
     if "image" not in request.files:
         return jsonify({"error": "No file part"}), 400
     f = request.files["image"]
@@ -103,8 +131,15 @@ def upload_app1():
         "height": h
     })
 
-@app.route("/dom-color-app/color_at", methods=["POST"])
+@app.route("/dom-color-app/uploads/<path:fname>")
+def serve_upload_app1(fname):
+    return send_from_directory(app.config["UPLOAD_FOLDER"], fname)
+
+@app.route("/dom-color-app/color_at", methods=["POST", "OPTIONS"])
 def color_at_app1():
+    if request.method == "OPTIONS":
+        return jsonify({}), 200
+        
     data = request.get_json(silent=True) or {}
     img_id = data.get("image_id")
     x = int(data.get("x", -1))
@@ -136,8 +171,11 @@ def color_at_app1():
     except Exception as e:
         return jsonify({"error": f"Failed to get color: {e}"}), 500
 
-@app.route("/dom-color-app/analyze", methods=["POST"])
+@app.route("/dom-color-app/analyze", methods=["POST", "OPTIONS"])
 def analyze_app1():
+    if request.method == "OPTIONS":
+        return jsonify({}), 200
+        
     data = request.get_json(silent=True) or {}
     img_id = data.get("image_id")
     rect = data.get("rect") or {}
@@ -204,23 +242,34 @@ def analyze_app1():
 # ============== APP 2 =====================
 ############################################
 
-@app.route("/angle-finder-app")
-def index_app2():
-    return render_template("index_app2.html")
+@app.route("/angle-finder-app/upload", methods=["POST", "OPTIONS"])
+def upload_app2():
+    if request.method == "OPTIONS":
+        return jsonify({}), 200
+        
+    file = request.files.get('image')
+    if not file or file.filename == "":
+        return jsonify({"error": "No file selected"}), 400
+        
+    # Validasi ekstensi file
+    if not allowed(file.filename):
+        return jsonify({"error": "Invalid file type"}), 400
+        
+    fname = f"app2_{uuid.uuid4().hex}_{file.filename}"
+    filepath = os.path.join(app.config["UPLOAD_FOLDER"], fname)
+    
+    try:
+        file.save(filepath)
+        return jsonify({
+            'filename': fname, 
+            'url': f"/angle-finder-app/uploads/{fname}"
+        })
+    except Exception as e:
+        return jsonify({"error": f"Failed to save file: {str(e)}"}), 500
 
 @app.route("/angle-finder-app/uploads/<path:fname>")
 def serve_upload_app2(fname):
     return send_from_directory(app.config["UPLOAD_FOLDER"], fname)
-
-@app.route("/angle-finder-app/upload", methods=["POST"])
-def upload_app2():
-    file = request.files['image']
-    if file.filename == "":
-        return jsonify({"error": "No file selected"}), 400
-    fname = f"app2_{uuid.uuid4().hex}_{file.filename}"
-    filepath = os.path.join(app.config["UPLOAD_FOLDER"], fname)
-    file.save(filepath)
-    return jsonify({'filename': fname, 'url': f"/angle-finder-app/uploads/{fname}"})
 
 def calculate_angle(p1, p2, p3):
     a = np.array(p1)
@@ -232,44 +281,73 @@ def calculate_angle(p1, p2, p3):
     angle = degrees(acos(np.clip(cosine_angle, -1.0, 1.0)))
     return round(angle, 2)
 
-@app.route("/angle-finder-app/calculate_angle", methods=["POST"])
+@app.route("/angle-finder-app/calculate_angle", methods=["POST", "OPTIONS"])
 def angle_app2():
+    if request.method == "OPTIONS":
+        return jsonify({}), 200
+        
     data = request.get_json()
-    p1 = data['p1']
-    p2 = data['p2']
-    p3 = data['p3']
-    angle = calculate_angle(p1, p2, p3)
-    return jsonify({'angle': angle})
+    if not data or 'p1' not in data or 'p2' not in data or 'p3' not in data:
+        return jsonify({"error": "Missing required points"}), 400
+        
+    try:
+        p1 = data['p1']
+        p2 = data['p2']
+        p3 = data['p3']
+        angle = calculate_angle(p1, p2, p3)
+        return jsonify({'angle': angle})
+    except Exception as e:
+        return jsonify({"error": f"Failed to calculate angle: {str(e)}"}), 500
 
 ############################################
 # ============== APP 3 =====================
 ############################################
 
-@app.route("/outfit-harmony-app")
-def index_app3():
-    return render_template("index_app3.html")
-
-@app.route("/get_color_harmony", methods=["POST"])
+@app.route("/get_color_harmony", methods=["POST", "OPTIONS"])
 def api_color_harmony():
+    if request.method == "OPTIONS":
+        return jsonify({}), 200
+        
     data = request.get_json()
+    if not data or 'color' not in data:
+        return jsonify({"error": "No color provided"}), 400
+        
     base_color = data.get('color')
-    harmony = get_harmony(base_color)
-    return jsonify(harmony)
+    try:
+        harmony = get_harmony(base_color)
+        return jsonify(harmony)
+    except Exception as e:
+        return jsonify({"error": f"Failed to generate color harmony: {str(e)}"}), 500
 
-@app.route("/get_color_info", methods=["POST"])
+@app.route("/get_color_info", methods=["POST", "OPTIONS"])
 def api_color_info():
+    if request.method == "OPTIONS":
+        return jsonify({}), 200
+        
     data = request.get_json(silent=True) or {}
     rgb = data.get("rgb")
     hex_val = data.get("hex")
 
     if rgb:
         try:
-            rgb = tuple(map(int, rgb))
+            # Handle berbagai format RGB
+            if isinstance(rgb, str):
+                rgb = tuple(map(int, rgb.strip('()').split(',')))
+            else:
+                rgb = tuple(map(int, rgb))
         except Exception:
             return jsonify({"error": "Invalid rgb format"}), 400
     elif hex_val:
         try:
-            rgb = tuple(int(hex_val.lstrip('#')[i:i+2], 16) for i in (0, 2, 4))
+            # Hilangkan # jika ada
+            hex_val = hex_val.lstrip('#')
+            # Pastikan panjang hex valid
+            if len(hex_val) not in [3, 6]:
+                return jsonify({"error": "Invalid hex format"}), 400
+            # Konversi ke RGB
+            if len(hex_val) == 3:
+                hex_val = ''.join([c*2 for c in hex_val])
+            rgb = tuple(int(hex_val[i:i+2], 16) for i in (0, 2, 4))
         except Exception:
             return jsonify({"error": "Invalid hex format"}), 400
     else:
@@ -292,7 +370,23 @@ def api_color_info():
     })
 
 ############################################
+# ============== ERROR HANDLERS ============
+############################################
+
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({"error": "Endpoint not found"}), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    return jsonify({"error": "Internal server error"}), 500
+
+@app.errorhandler(413)
+def too_large(error):
+    return jsonify({"error": "File too large"}), 413
+
+############################################
 # ============== MAIN RUN ==================
 ############################################
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
