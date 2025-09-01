@@ -3,7 +3,6 @@ import uuid
 import os
 import math
 import pandas as pd
-import cv2
 import numpy as np
 from math import acos, degrees
 from flask import Flask, render_template, request, jsonify, send_from_directory
