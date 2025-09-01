@@ -1,6 +1,5 @@
 Flask
 pandas
 numpy
-opencv-python
 Pillow
 colorthief
